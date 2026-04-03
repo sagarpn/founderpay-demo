@@ -326,11 +326,25 @@ function simIDUpload() {
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
+  // Wire all nav items
   document.querySelectorAll('[data-page]').forEach(el => {
-    el.addEventListener('click', () => nav(el.dataset.page));
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      const page = el.dataset.page;
+      nav(page);
+    });
   });
-  const initPage = window.location.hash.replace('#', '') || 'overview';
+
+  // Also wire the logo
+  document.querySelector('.sb-logo')?.addEventListener('click', () => nav('overview'));
+  document.querySelector('.sb-agent-strip')?.addEventListener('click', () => nav('overview'));
+
+  // Initial page — handle both hash and no-hash
+  const hash = window.location.hash.replace('#', '').trim();
+  const initPage = (hash && PAGES[hash]) ? hash : 'overview';
   activatePage(initPage);
+
+  // Init all tab groups
   switchTab('gp', 'invoices');
   switchTab('comp', 'overview');
   switchTab('recon', 'review');

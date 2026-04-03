@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FounderPay — Built for Startups</title>
+<title>Vela — Agentic Finance for Startups</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -19,8 +19,8 @@
       <svg viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.5" fill="#0A0A0A"/><rect x="10" y="2" width="6" height="6" rx="1.5" fill="#0A0A0A" opacity=".6"/><rect x="2" y="10" width="6" height="6" rx="1.5" fill="#0A0A0A" opacity=".6"/><rect x="10" y="10" width="6" height="6" rx="1.5" fill="#0A0A0A"/></svg>
     </div>
     <div>
-      <div class="sb-logo-name">FounderPay</div>
-      <div class="sb-logo-tag">Agentic Banking</div>
+      <div class="sb-logo-name">Vela</div>
+      <div class="sb-logo-tag">Agentic Finance</div>
     </div>
   </div>
 
@@ -91,13 +91,20 @@
     </button>
   </div>
 
-  <!-- Agent strip -->
-  <div class="sb-agent-strip" onclick="nav('overview')" style="margin-top:8px;">
+  <div style="padding:12px 8px 0;">
+    <div class="sb-group-label">CFO Agent</div>
+  </div>
+  <!-- Agent panel -->
+  <div class="sb-agent-strip" onclick="nav('overview')">
     <div class="sb-agent-top">
       <div class="agent-pulse"></div>
-      <div class="sb-agent-label">CFO Agent</div>
+      <div class="sb-agent-label">CFO Agent · Active</div>
     </div>
-    <div class="sb-agent-line">3 actions overnight · 1 needs you</div>
+    <div class="sb-agent-line">3 actions done overnight</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+      <div style="font-size:10px;color:var(--sage);font-weight:600;">1 needs your approval</div>
+      <div style="font-size:10px;color:var(--t3);">See log →</div>
+    </div>
   </div>
 
   <div style="padding:6px 8px 0;">
@@ -150,7 +157,7 @@
             <span style="color:var(--t3);">Chase ····4821</span>
           </div>
         </div>
-        <div class="full-only" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:340px;">
+        <div class="full-only is-grid" style="grid-template-columns:1fr 1fr;gap:10px;min-width:340px;">
           <div class="metric">
             <div class="metric-label">Revenue MTD</div>
             <div class="metric-value">$34,820</div>
