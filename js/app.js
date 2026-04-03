@@ -12,20 +12,38 @@ const CHECK = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path
 
 // ── PAGE CONFIG ──
 const PAGES = {
-  overview:  { title: 'Overview',             sub: 'Luna Inc · Day 23 · Mar 24, 2026' },
-  getpaid:   { title: 'Get Paid',             sub: 'Invoices · Subscriptions · Revenue' },
+  overview:  { title: 'Today',                sub: 'Luna Inc · Mar 24, 2026' },
+  billing:   { title: 'Billing',              sub: 'Invoices · Subscriptions · Recovery' },
   payments:  { title: 'Payments',             sub: 'Collect · Aggregate · Deposit' },
-  capital:   { title: 'Capital',              sub: 'Funding · SAFE notes · Reg D · Preview' },
+  capital:   { title: 'Capital',              sub: 'SAFE notes · Cap table · Investor ready' },
   payables:  { title: 'Pay Out',              sub: 'Bills · Vendors · Approvals' },
   payroll:   { title: 'Payroll',              sub: 'Preview · Launching Q3 2026' },
-  treasury:  { title: 'Treasury',             sub: 'Cash · Runway · Yield' },
-  stayclean: { title: 'Stay Clean',           sub: 'Licensing · Identity · Card security · Disclosure' },
+  treasury:  { title: 'Treasury',             sub: 'Cash · Bank integrations · Sweep' },
+  stayclean: { title: 'Compliance',           sub: 'Licensing · Identity · Card security · Disclosure' },
   disputes:  { title: 'Disputes',             sub: '1 open · response due Mar 28' },
-  numbers:   { title: 'Know Your Numbers',    sub: 'Books · Reconciliation · P&L' },
+  numbers:   { title: 'Know Your Numbers',    sub: 'Books · Reconciliation · P&L · R&D Credit' },
   legal:     { title: 'Legal',               sub: 'Contracts · Contractors · Corporate calendar' },
   reports:   { title: 'Reports',             sub: 'P&L · Investor updates · Preview' },
   settings:  { title: 'Settings',            sub: 'Luna Inc · Agent · Integrations' }
 };
+
+// ── BULLET ROW EXPAND ──
+function toggleBullet(row) {
+  const body = row.querySelector('.br-body');
+  const isOpen = row.classList.contains('open');
+  const list = row.closest('.bullet-list');
+  if (list) {
+    list.querySelectorAll('.bullet-row').forEach(r => {
+      r.classList.remove('open');
+      const b = r.querySelector('.br-body');
+      if (b) b.classList.remove('visible');
+    });
+  }
+  if (!isOpen && body) {
+    row.classList.add('open');
+    body.classList.add('visible');
+  }
+}
 
 // ── FOCUS / FULL TOGGLE ──
 function setView(mode) {
@@ -345,11 +363,12 @@ document.addEventListener('DOMContentLoaded', () => {
   activatePage('overview');
 
   // Init tab groups
-  switchTab('gp', 'invoices');
+  switchTab('bill', 'invoices');
   switchTab('comp', 'overview');
   switchTab('recon', 'review');
   switchTab('settings', 'profile');
   switchTab('legal', 'contracts');
   switchTab('treas', 'overview');
+  switchTab('cap', 'captable');
   selStage(0);
 });
