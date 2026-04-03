@@ -39,31 +39,38 @@ function setView(mode) {
   document.getElementById('vt-full').classList.toggle('active', mode === 'full');
 }
 
-// ── HASH ROUTING ──
+// ── NAVIGATION — direct, no hash dependency ──
 function nav(page) {
   if (!PAGES[page]) return;
-  window.location.hash = page;
+  activatePage(page);
 }
 
 function activatePage(page) {
   if (!PAGES[page]) page = 'overview';
+
+  // Hide all pages, deactivate all nav items
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  // Show target page
   const pg = document.getElementById('pg-' + page);
   if (pg) pg.classList.add('active');
+
+  // Highlight nav item
   const ni = document.querySelector(`[data-page="${page}"]`);
   if (ni) ni.classList.add('active');
+
   S.page = page;
+
+  // Update topbar
   const cfg = PAGES[page];
-  document.getElementById('tb-title').textContent = cfg.title;
-  document.getElementById('tb-sub').textContent   = cfg.sub;
+  const titleEl = document.getElementById('tb-title');
+  const subEl   = document.getElementById('tb-sub');
+  if (titleEl) titleEl.textContent = cfg.title;
+  if (subEl)   subEl.textContent   = cfg.sub;
+
   window.scrollTo(0, 0);
 }
-
-window.addEventListener('hashchange', () => {
-  const page = window.location.hash.replace('#', '') || 'overview';
-  activatePage(page);
-});
 
 // ── TABS ──
 function switchTab(group, tab) {
@@ -326,25 +333,15 @@ function simIDUpload() {
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
-  // Wire all nav items
+  // Wire all data-page nav buttons
   document.querySelectorAll('[data-page]').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.preventDefault();
-      const page = el.dataset.page;
-      nav(page);
-    });
+    el.addEventListener('click', () => nav(el.dataset.page));
   });
 
-  // Also wire the logo
-  document.querySelector('.sb-logo')?.addEventListener('click', () => nav('overview'));
-  document.querySelector('.sb-agent-strip')?.addEventListener('click', () => nav('overview'));
+  // Start on overview
+  activatePage('overview');
 
-  // Initial page — handle both hash and no-hash
-  const hash = window.location.hash.replace('#', '').trim();
-  const initPage = (hash && PAGES[hash]) ? hash : 'overview';
-  activatePage(initPage);
-
-  // Init all tab groups
+  // Init tab groups
   switchTab('gp', 'invoices');
   switchTab('comp', 'overview');
   switchTab('recon', 'review');
