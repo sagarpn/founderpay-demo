@@ -22,7 +22,7 @@ const PAGES = {
   stayclean: { title: 'Stay Clean',           sub: 'Licensing · Identity · Card security · Disclosure' },
   disputes:  { title: 'Disputes',             sub: '1 open · response due Mar 28' },
   numbers:   { title: 'Know Your Numbers',    sub: 'Books · Reconciliation · P&L' },
-  legal:     { title: 'Legal',               sub: 'Contracts · Corporate docs · Preview' },
+  legal:     { title: 'Legal',               sub: 'Contracts · Contractors · Corporate calendar' },
   reports:   { title: 'Reports',             sub: 'P&L · Investor updates · Preview' },
   settings:  { title: 'Settings',            sub: 'Luna Inc · Agent · Integrations' }
 };
@@ -136,7 +136,10 @@ function approveAction(id) {
   const msgs = {
     dispute: 'Chargeback response submitted to Visa. You\'ll hear back in 7–10 business days.',
     ar:      'Follow-up sent to accounts@meridian.co with payment link. Escalation scheduled for Mar 31 if unpaid.',
-    yield:   '$30,000 transfer to Mercury Treasury initiated at 4.8% APY. Earning $118/month starting now.'
+    yield:   '$30,000 transfer to Mercury Treasury initiated at 4.8% APY. Earning $118/month starting now.',
+    figma:   'Opening Figma decision options — downgrade, cancel, or keep. Decision deadline: Mar 31.',
+    '1099':  'Alex Chen 1099 threshold noted. I\'ll flag automatically on the next invoice for Alex.',
+    tools:   'Showing unused tools analysis — Hotjar, Loom Pro, Notion. Draft cancellation emails ready.'
   };
   if (msgs[id]) setTimeout(() => alert(msgs[id]), 100);
 }
@@ -346,5 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
   switchTab('comp', 'overview');
   switchTab('recon', 'review');
   switchTab('settings', 'profile');
+  switchTab('legal', 'contracts');
+  switchTab('treas', 'overview');
   selStage(0);
 });
