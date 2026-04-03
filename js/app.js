@@ -1,32 +1,43 @@
 // ── STATE ──
 const S = {
-  page: 'dashboard',
+  page: 'overview',
+  view: 'focus',
   selectedStage: 0,
   reconChecked: new Set(),
   approvedActions: new Set(),
-  lineItemCount: 1,
-  templates: []
+  liCount: 1
 };
 
 const CHECK = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 // ── PAGE CONFIG ──
 const PAGES = {
-  dashboard:  { title: 'Dashboard',             sub: 'Luna Inc · Day 23 · Mar 24, 2026' },
-  billing:    { title: 'Billing',               sub: 'Invoices · Subscriptions · Revenue' },
-  payments:   { title: 'Payments',              sub: 'Collect · Aggregate · Deposit' },
-  capital:    { title: 'Capital',               sub: 'Funding · SAFE notes · Reg D' },
-  payables:   { title: 'Payables',              sub: 'Bills · Vendors · Approvals' },
-  payroll:    { title: 'Payroll',               sub: 'Preview · Launching Q3 2026' },
-  treasury:   { title: 'Treasury',              sub: 'Cash · Runway · Yield' },
-  ledger:     { title: 'Ledger',                sub: 'Reconciliation · P&L' },
-  compliance: { title: 'Compliance',            sub: 'MTL · KYC · PCI · NACHA · Reg E' },
-  tax:        { title: 'Tax',                   sub: 'Preview · Launching Q3 2026' },
-  legal:      { title: 'Legal',                 sub: 'Preview · Launching Q3 2026' },
-  reports:    { title: 'Reports',               sub: 'Preview · Launching Q3 2026' },
-  disputes:   { title: 'Disputes',              sub: '1 open · response due Mar 28' },
-  settings:   { title: 'Settings',              sub: 'Luna Inc · Integrations · Agent' }
+  overview:  { title: 'Overview',             sub: 'Luna Inc · Day 23 · Mar 24, 2026' },
+  getpaid:   { title: 'Get Paid',             sub: 'Invoices · Subscriptions · Revenue' },
+  payments:  { title: 'Payments',             sub: 'Collect · Aggregate · Deposit' },
+  capital:   { title: 'Capital',              sub: 'Funding · SAFE notes · Reg D · Preview' },
+  payables:  { title: 'Pay Out',              sub: 'Bills · Vendors · Approvals' },
+  payroll:   { title: 'Payroll',              sub: 'Preview · Launching Q3 2026' },
+  treasury:  { title: 'Treasury',             sub: 'Cash · Runway · Yield' },
+  stayclean: { title: 'Stay Clean',           sub: 'Licensing · Identity · Card security · Disclosure' },
+  disputes:  { title: 'Disputes',             sub: '1 open · response due Mar 28' },
+  numbers:   { title: 'Know Your Numbers',    sub: 'Books · Reconciliation · P&L' },
+  legal:     { title: 'Legal',               sub: 'Contracts · Corporate docs · Preview' },
+  reports:   { title: 'Reports',             sub: 'P&L · Investor updates · Preview' },
+  settings:  { title: 'Settings',            sub: 'Luna Inc · Agent · Integrations' }
 };
+
+// ── FOCUS / FULL TOGGLE ──
+function setView(mode) {
+  S.view = mode;
+  if (mode === 'full') {
+    document.body.classList.add('full-view');
+  } else {
+    document.body.classList.remove('full-view');
+  }
+  document.getElementById('vt-focus').classList.toggle('active', mode === 'focus');
+  document.getElementById('vt-full').classList.toggle('active', mode === 'full');
+}
 
 // ── HASH ROUTING ──
 function nav(page) {
@@ -35,7 +46,7 @@ function nav(page) {
 }
 
 function activatePage(page) {
-  if (!PAGES[page]) page = 'dashboard';
+  if (!PAGES[page]) page = 'overview';
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   const pg = document.getElementById('pg-' + page);
@@ -50,7 +61,7 @@ function activatePage(page) {
 }
 
 window.addEventListener('hashchange', () => {
-  const page = window.location.hash.replace('#', '') || 'dashboard';
+  const page = window.location.hash.replace('#', '') || 'overview';
   activatePage(page);
 });
 
@@ -65,13 +76,25 @@ function switchTab(group, tab) {
 }
 
 // ── DISPUTE TABS ──
-function switchDisputeTab(tab) {
+function switchDisputeTab(el, tab) {
   document.querySelectorAll('.dispute-tab-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
+  el.classList.add('active');
   ['open','history','playbook'].forEach(t => {
-    const el = document.getElementById('dtab-' + t);
-    if (el) el.style.display = t === tab ? 'block' : 'none';
+    const d = document.getElementById('dtab-' + t);
+    if (d) d.style.display = t === tab ? 'block' : 'none';
   });
+}
+
+// ── LOG EXPAND ──
+function toggleLog(row) {
+  const expand = row.nextElementSibling;
+  const isOpen = expand && expand.classList.contains('visible');
+  document.querySelectorAll('.log-expand').forEach(e => e.classList.remove('visible'));
+  document.querySelectorAll('.log-item').forEach(r => r.classList.remove('open'));
+  if (!isOpen && expand) {
+    expand.classList.add('visible');
+    row.classList.add('open');
+  }
 }
 
 // ── PAYMENT FLOW STAGES ──
@@ -91,46 +114,41 @@ function toggleRecon(id) {
     box.innerHTML = S.reconChecked.has(id) ? CHECK : '';
   }
   const cnt = document.getElementById('recon-count');
-  if (cnt) cnt.textContent = S.reconChecked.size + ' matched';
+  if (cnt) cnt.textContent = S.reconChecked.size + ' confirmed';
 }
 
-// ── APPROVE BRIEFING ACTION ──
+// ── APPROVE ACTIONS ──
 function approveAction(id) {
   S.approvedActions.add(id);
-  const btn = document.getElementById('ba-btn-' + id);
+  const btn = document.getElementById('ab-' + id);
   if (btn) {
     btn.textContent = '✓ Done';
-    btn.style.background = 'var(--sage-text)';
+    btn.classList.add('done');
     btn.disabled = true;
   }
   const msgs = {
-    dispute: 'Chargeback response submitted to Visa. You\'ll receive a decision in 7–10 business days.',
-    ar:      'Follow-up email sent to accounts@meridian.co with payment link. Escalation scheduled for day 14 if unpaid.',
-    yield:   '$30,000 transfer to Mercury Treasury initiated at 4.8% APY. Estimated return: $118/month.'
+    dispute: 'Chargeback response submitted to Visa. You\'ll hear back in 7–10 business days.',
+    ar:      'Follow-up sent to accounts@meridian.co with payment link. Escalation scheduled for Mar 31 if unpaid.',
+    yield:   '$30,000 transfer to Mercury Treasury initiated at 4.8% APY. Earning $118/month starting now.'
   };
-  if (msgs[id]) {
-    setTimeout(() => alert(msgs[id]), 100);
-  }
+  if (msgs[id]) setTimeout(() => alert(msgs[id]), 100);
 }
 
-// ── AP APPROVE ──
 function approveVendor(name) {
-  alert(`Payment to ${name} approved. Scheduled for next business day. I\'ll remember this vendor for future auto-approvals.`);
+  alert(`Payment to ${name} approved and scheduled. I'll remember this vendor — future payments will be auto-handled.`);
 }
 
 // ── DISPUTE SUBMIT ──
 function submitDispute() {
-  alert('Response submitted to Stripe dispute team. Confirmation sent to jordan@luna.inc.\n\nExpected decision: 7–10 business days.\nFunds held in Stripe escrow until resolved.');
+  alert('Response submitted to Stripe. Confirmation sent to jordan@luna.inc.\n\nExpected decision: 7–10 business days.\n$6,500 held in Stripe escrow until resolved.');
 }
 
-// ── COPY REG E ──
+// ── COPY DISCLOSURE ──
 function copyRegE() {
   const t = '"In case of errors or questions about your electronic transfers, contact us within 60 days after the error appeared on your statement. We will investigate and correct any error within 10 business days. If we need more time, we may take up to 45 days, but will credit your account within 10 days while the investigation is ongoing."';
   navigator.clipboard.writeText(t).then(() => {
-    alert('Reg E disclosure copied to clipboard.\n\nPaste into your checkout page or payment terms before the next billing cycle.');
-  }).catch(() => {
-    alert('Reg E disclosure text:\n\n' + t);
-  });
+    alert('Payment disclosure copied.\n\nPaste this into your checkout page or payment terms. Once added, your compliance is fully green.');
+  }).catch(() => alert('Disclosure text:\n\n' + t));
 }
 
 // ── INVOICE MODAL ──
@@ -163,7 +181,6 @@ let liCount = 1;
 function addLineItem() {
   liCount++;
   const n = liCount;
-  const container = document.getElementById('line-items');
   const row = document.createElement('div');
   row.className = 'line-item-row';
   row.innerHTML = `<input class="form-input" placeholder="Description" style="font-size:12px;height:34px;">
@@ -171,13 +188,12 @@ function addLineItem() {
     <input class="form-input" placeholder="0.00" style="font-size:12px;height:34px;" id="li-rate-${n}" oninput="calcLineItem(${n})">
     <input class="form-input mono" id="li-amt-${n}" placeholder="$0.00" style="font-size:12px;height:34px;" readonly>
     <button class="li-remove" onclick="removeLineItem(this)">×</button>`;
-  container.appendChild(row);
+  document.getElementById('line-items').appendChild(row);
 }
 
 function removeLineItem(btn) {
-  const row = btn.closest('.line-item-row');
   if (document.querySelectorAll('#line-items .line-item-row').length > 1) {
-    row.remove();
+    btn.closest('.line-item-row').remove();
     updateInvoiceTotal();
   }
 }
@@ -187,12 +203,12 @@ function sendInvoice() {
   const num    = document.getElementById('inv-num').value || 'INV-1044';
   const total  = document.getElementById('inv-total').textContent;
   closeInvoiceModal();
-  alert(`Invoice ${num} sent to ${client} for ${total}.\n\n✓ Payment link generated\n✓ Reg E disclosure embedded\n✓ Added to AR tracking\n✓ Reminder scheduled for day 3 and day 7`);
+  alert(`Invoice ${num} sent to ${client} for ${total}.\n\n✓ Payment link generated\n✓ Disclosure embedded\n✓ Added to AR tracking\n✓ Reminders scheduled`);
 }
 
 function saveAsTemplate() {
-  const client = document.getElementById('inv-client').value || 'New template';
-  alert(`Template saved as "${client} template". Available next time you create an invoice.`);
+  const name = document.getElementById('inv-client').value || 'New template';
+  alert(`Saved as "${name} template". Available next time you create an invoice.`);
 }
 
 function openTemplateModal() {
@@ -203,8 +219,8 @@ function useTemplate(type) {
   document.getElementById('template-modal').style.display = 'none';
   openInvoiceModal();
   const templates = {
-    software: { desc: 'Software development services', qty: 1, rate: 5000 },
-    monthly:  { desc: 'Monthly retainer', qty: 1, rate: 3500 },
+    software:   { desc: 'Software development services', qty: 1, rate: 5000 },
+    monthly:    { desc: 'Monthly retainer', qty: 1, rate: 3500 },
     consulting: { desc: 'Consulting — hourly', qty: 10, rate: 250 }
   };
   const t = templates[type];
@@ -212,9 +228,9 @@ function useTemplate(type) {
     setTimeout(() => {
       const descEl = document.querySelector('#line-items .line-item-row input:first-child');
       if (descEl) descEl.value = t.desc;
-      const qtyEl = document.getElementById('li-qty-1');
-      if (qtyEl) { qtyEl.value = t.qty; }
+      const qtyEl  = document.getElementById('li-qty-1');
       const rateEl = document.getElementById('li-rate-1');
+      if (qtyEl)  qtyEl.value  = t.qty;
       if (rateEl) { rateEl.value = t.rate; calcLineItem(1); }
     }, 100);
   }
@@ -222,60 +238,48 @@ function useTemplate(type) {
 
 // ── INVOICE DETAIL ──
 function openInvoiceDetail(id) {
-  const invoices = {
+  const data = {
     meridian: {
-      name: 'Meridian Co',
-      num: 'INV-1041',
-      amount: '$3,400',
-      status: 'overdue',
+      name: 'Meridian Co', num: 'INV-1041', amount: '$3,400', status: 'overdue',
       steps: [
         { label: 'Sent', time: 'Mar 10 · 9:00am', state: 'done' },
-        { label: 'Viewed', time: 'Mar 11 · 2:14pm', state: 'done', note: 'viewed' },
+        { label: 'Viewed', time: 'Mar 11 · 2:14pm', state: 'done' },
         { label: 'Due', time: 'Mar 24 · Overdue', state: 'active' },
-        { label: 'Paid', time: 'Awaiting payment', state: 'pending' }
-      ]
+        { label: 'Paid', time: 'Waiting', state: 'pending' }
+      ],
+      note: '<div class="agent-box"><div class="agent-header"><div class="agent-pulse"></div><div class="agent-label">Agent</div></div><div class="agent-text">Meridian viewed the invoice Mar 11 but hasn\'t paid. Reminder sent Mar 23. Escalation scheduled for Mar 31 — final notice with payment link.</div></div>'
     },
     vertex: {
-      name: 'Vertex Solutions',
-      num: 'INV-1040',
-      amount: '$12,000',
-      status: 'sent',
+      name: 'Vertex Solutions', num: 'INV-1040', amount: '$12,000', status: 'viewed',
       steps: [
         { label: 'Sent', time: 'Mar 8 · 10:30am', state: 'done' },
-        { label: 'Viewed', time: 'Mar 20 · 2:14pm', state: 'done', note: 'viewed' },
+        { label: 'Viewed', time: 'Mar 20 · 2:14pm', state: 'done' },
         { label: 'Due', time: 'Mar 30', state: 'active' },
-        { label: 'Paid', time: 'Awaiting payment', state: 'pending' }
-      ]
+        { label: 'Paid', time: 'Waiting', state: 'pending' }
+      ],
+      note: '<div class="alert alert-success"><svg class="alert-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><div><div class="alert-title">Invoice viewed Mar 20 at 2:14pm</div><div class="alert-body">Payment expected before Mar 30. I\'ll send a gentle reminder in 3 days if it hasn\'t cleared.</div></div></div>'
     }
   };
-  const inv = invoices[id];
+  const inv = data[id];
   if (!inv) return;
-
-  const stepsHtml = inv.steps.map(s => {
-    const noteClass = s.note === 'viewed' ? ' tl-sub viewed' : s.note === 'paid' ? ' tl-sub paid' : ' tl-sub';
-    return `<div class="tl-item">
+  const stepsHtml = inv.steps.map(s => `
+    <div class="tl-item">
       <div class="tl-dot ${s.state}">${s.state === 'done' ? '✓' : s.state === 'active' ? '→' : '○'}</div>
-      <div class="tl-content">
-        <div class="tl-title">${s.label}</div>
-        <div class="${noteClass.trim()}">${s.time}</div>
-      </div>
-    </div>`;
-  }).join('');
-
+      <div class="tl-content"><div class="tl-title">${s.label}</div><div class="tl-sub">${s.time}</div></div>
+    </div>`).join('');
   document.getElementById('inv-detail-content').innerHTML = `
     <div class="modal-title">${inv.num} — ${inv.name}</div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-      <div style="font-family:var(--font-display);font-size:28px;font-weight:700;">${inv.amount}</div>
-      <span class="badge ${inv.status === 'overdue' ? 'badge-red' : 'badge-blue'}">${inv.status === 'overdue' ? 'Overdue' : 'Viewed · Due Mar 30'}</span>
+      <div class="mono" style="font-size:28px;font-weight:700;">${inv.amount}</div>
+      <span class="badge ${inv.status === 'overdue' ? 'badge-red' : 'badge-blue'}">${inv.status === 'overdue' ? '14 days overdue' : 'Viewed · Due Mar 30'}</span>
     </div>
-    <div class="card-title" style="margin-bottom:12px;">Payment status</div>
-    <div class="timeline" style="margin-bottom:18px;">${stepsHtml}</div>
-    ${id === 'vertex' ? '<div class="alert alert-success" style="margin-bottom:0;"><svg class="alert-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/><path d="M5 8l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><div><div class="alert-title">Invoice viewed Mar 20 at 2:14pm</div><div class="alert-body">Vertex opened the invoice — payment expected before Mar 30. Agent will send a gentle reminder at T-3 days.</div></div></div>' : '<div class="agent-box" style="margin-top:0;"><div class="agent-header"><div class="agent-pulse"></div><div class="agent-label">CFO Agent</div></div><div class="agent-text">Meridian viewed the invoice Mar 11 but has not paid. Follow-up sent Mar 23. Next escalation scheduled for Mar 31 — final notice with payment link.</div></div>'}
+    <div style="font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">Payment status</div>
+    <div class="timeline" style="margin-bottom:16px;">${stepsHtml}</div>
+    ${inv.note}
     <div class="modal-footer">
-      <button class="btn btn-sm" onclick="document.getElementById(\'inv-detail-modal\').style.display=\'none\'">Close</button>
+      <button class="btn btn-sm" onclick="document.getElementById('inv-detail-modal').style.display='none'">Close</button>
       ${inv.status === 'overdue' ? '<button class="btn btn-sm btn-primary" onclick="alert(\'Reminder sent to accounts@meridian.co\')">Send reminder →</button>' : ''}
-    </div>
-  `;
+    </div>`;
   document.getElementById('inv-detail-modal').style.display = 'flex';
 }
 
@@ -284,9 +288,9 @@ function goStep(n) {
   document.querySelectorAll('.onboard-screen').forEach((s, i) => s.classList.toggle('active', i + 1 === n));
   document.querySelectorAll('.step-circle').forEach((c, i) => {
     c.className = 'step-circle';
-    if (i + 1 < n) { c.classList.add('done'); c.innerHTML = CHECK; }
+    if (i + 1 < n)      { c.classList.add('done');   c.innerHTML = CHECK; }
     else if (i + 1 === n) { c.classList.add('active'); c.textContent = i + 1; }
-    else c.textContent = i + 1;
+    else                  { c.textContent = i + 1; }
   });
   document.querySelectorAll('.step-label').forEach((l, i) => {
     l.className = 'step-label' + (i + 1 < n ? ' done' : i + 1 === n ? ' active' : '');
@@ -302,10 +306,10 @@ function selectRail(rail) {
   document.querySelectorAll('.rail-option').forEach(r => r.classList.remove('selected'));
   document.getElementById('rail-' + rail)?.classList.add('selected');
   const msgs = {
-    rtp:    'RTP selected. Funds move bank-to-bank in under 5 seconds. No holding — satisfies the no-holding MTL doctrine in 34 states.',
-    fednow: 'FedNow selected. Federal Reserve instant rail. Final, irrevocable settlement. Same no-holding MTL profile as RTP.',
-    ach:    'Standard ACH selected. T+1 same-day or T+2 standard. Stripe Connect escrow holds funds — MTL covered by Stripe licenses.',
-    stripe: 'Stripe Instant Payout selected. Push to debit card in minutes. Best time-to-money for your customers.'
+    rtp:    'RTP — bank-to-bank in under 5 seconds. No licensing exposure in 34 states.',
+    fednow: 'FedNow — Federal Reserve instant rail. Final settlement. Same no-exposure profile as RTP.',
+    ach:    'ACH — T+1 or T+2. Stripe holds the licensing coverage.',
+    stripe: 'Stripe Instant — push to debit card in minutes. Best time-to-money.'
   };
   const el = document.getElementById('rail-agent');
   if (el) el.textContent = msgs[rail] || '';
@@ -314,45 +318,22 @@ function selectRail(rail) {
 function simIDUpload() {
   const z = document.getElementById('id-upload-zone');
   if (!z) return;
-  z.innerHTML = '<div style="color:var(--amber);font-size:13px;font-weight:500;">Verifying with Persona...</div>';
+  z.innerHTML = '<div style="color:var(--amber);font-size:13px;font-weight:500;">Verifying...</div>';
   setTimeout(() => {
-    z.innerHTML = '<div style="color:var(--sage-text);font-size:13px;font-weight:500;">✓ Identity verified · Confidence 98% · OFAC clear · Watchlist clear</div>';
+    z.innerHTML = '<div style="color:var(--sage);font-size:13px;font-weight:500;">✓ Identity verified · 98% confidence · OFAC clear · Watchlist clear</div>';
   }, 1800);
-}
-
-function genComplianceProfile() {
-  const vol  = document.getElementById('sel-vol')?.value || '';
-  const act  = document.getElementById('sel-act')?.value || '';
-  const high = ['Marketplace','Crypto / Web3','Cannabis','Gambling'].includes(act);
-  const big  = vol.includes('$50,000') || vol.includes('$250,000');
-  const tags = document.getElementById('comp-tags');
-  if (!tags) return;
-  const kyc = high ? 'ctag-red">● KYC Tier 3 — Enhanced' : big ? 'ctag-amber">● KYC Tier 2' : 'ctag-blue">● KYC Tier 1';
-  const mtl = high ? 'ctag-amber">● MTL review required' : 'ctag-green">● No MTL required';
-  tags.innerHTML = `<span class="ctag ctag-accent">● PCI SAQ-A scope</span><span class="ctag ${mtl}</span><span class="ctag ${kyc}</span><span class="ctag ctag-amber">● Reg E disclosure needed</span>`;
 }
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', () => {
-  // Wire nav items
   document.querySelectorAll('[data-page]').forEach(el => {
     el.addEventListener('click', () => nav(el.dataset.page));
   });
-
-  // Initial page from hash or default
-  const initPage = window.location.hash.replace('#', '') || 'dashboard';
+  const initPage = window.location.hash.replace('#', '') || 'overview';
   activatePage(initPage);
-
-  // Init tabs
-  switchTab('bill', 'invoices');
-  switchTab('comp', 'mtl');
-  switchTab('recon', 'unmatched');
+  switchTab('gp', 'invoices');
+  switchTab('comp', 'overview');
+  switchTab('recon', 'review');
   switchTab('settings', 'profile');
-
-  // Init payment flow
   selStage(0);
-
-  // Watch for compliance profile changes
-  document.getElementById('sel-vol')?.addEventListener('change', genComplianceProfile);
-  document.getElementById('sel-act')?.addEventListener('change', genComplianceProfile);
 });
